@@ -1,6 +1,8 @@
 """
-Script defines tables columns keys to extract from api
+Script defines:
+ 1. tables columns keys to extract from api
 for each particular table.
+2.  table columns to match table schema in database.
 """
 
 compound_properties_keys_to_extract = [
