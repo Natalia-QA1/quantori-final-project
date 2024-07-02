@@ -2,7 +2,9 @@ from sqlalchemy import (
     Column,
     String,
     Text,
-    Float
+    Float,
+    Numeric,
+    LargeBinary
 )
 from sqlalchemy.orm import declarative_base
 
@@ -102,3 +104,18 @@ class ChemblLookupIds(Base):
     last_active = Column(Float)
     resource_url = Column(String(100))
     status = Column(String(10))
+
+
+class MorganFingerprint(Base):
+    __tablename__ = 'st_fct_source_molecules_morgan_fingerprints'
+
+    chembl_id = Column(String(20), primary_key=True)
+    morgan_fingerprint = Column(LargeBinary, nullable=False)
+
+
+class TargetMoleculesSimilarity(Base):
+    __tablename__ = 'st_fct_target_molecues_data_03_06_2024_similarities'
+
+    target_chembl_id = Column(String(20), primary_key=True, nullable=False)
+    source_chembl_id = Column(String(20), primary_key=True, nullable=False)
+    similarity_score = Column(Numeric, nullable=False)
