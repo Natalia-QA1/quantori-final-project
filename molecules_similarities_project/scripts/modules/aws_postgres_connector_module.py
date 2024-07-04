@@ -1,8 +1,34 @@
 import logging
 
 import psycopg2
+from sqlalchemy.exc import IntegrityError, OperationalError, ProgrammingError, DataError
+
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
+
+
+class PostgresConnectorBaseException(
+    Exception
+):
+    pass
+
+
+class PostgresConnectorIntegrityError(
+    PostgresConnectorBaseException
+):
+    pass
+
+
+class PostgresConnectorConnectionError(
+    PostgresConnectorBaseException
+):
+    pass
+
+
+class PostgresConnectorSqlRelatedError(
+    PostgresConnectorBaseException
+):
+    pass
 
 
 class PostgresConnector:
@@ -74,9 +100,24 @@ class PostgresConnector:
                 f"Inserted {len(data)} rows into Postgres table {table_to_insert}"
             )
 
-        except Exception as e:
+        except IntegrityError as ie:
             session.rollback()
-            logging.error(f"Error occurred: {e}")
+            raise PostgresConnectorIntegrityError(
+                f"IntegrityError occurred: {ie}"
+            )
+
+        except OperationalError as oe:
+            session.rollback()
+            raise PostgresConnectorConnectionError(
+                f"Operational Error occurred: {oe} \
+                Check your connection settings."
+            )
+
+        except ProgrammingError as pe:
+            session.rollback()
+            raise PostgresConnectorSqlRelatedError(
+                f"Programming Error occurred: {pe}"
+            )
 
         finally:
             session.close()
