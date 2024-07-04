@@ -55,9 +55,8 @@ begin
 	    similarity_score,
 	    has_duplicates_of_last_largest_score
 	from top_10_with_duplicates
+	where not exists(select 1 from nananeva.dm_top10_dim_molecules_data_03_06_2024
 	;
-
-
 
 end
 $$
@@ -99,7 +98,8 @@ begin
 	from nananeva.st_dim_molecule_dictionary md
 	join nananeva.st_dim_compound_properties mp
 	on md.chembl_id = mp.chembl_id
-	where md.chembl_id in (select chembl_id from data_mart_chembl_ids);
+	where md.chembl_id in (select chembl_id from data_mart_chembl_ids)
+	      and not exists(select 1 from nananeva.dm_top10_dim_molecules_data_03_06_2024;
 
 end
 $$
