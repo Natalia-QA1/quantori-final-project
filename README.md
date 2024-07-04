@@ -21,7 +21,7 @@ The decision to omit a staging layer is based on the direct access to the ChEMBL
 #### Storage Layer
 The Storage Layer is designed with a complex star schema, featuring several fact tables and dimension tables. 
 It consists of the following tables:
-![datamart_tables]([https://github.com/Natalia-QA1/quantori-final-project/blob/main/assets/datamart_tables_erd.PNG](https://github.com/Natalia-QA1/quantori-final-project/blob/main/assets/storage_tables_erd.PNG))
+![datamart_tables](https://github.com/Natalia-QA1/quantori-final-project/blob/main/assets/storage_tables_erd.PNG)
 Dimension Tables:
 - st_dim_chembl_id_lookup
 - st_dim_molecule_dictionary
