@@ -36,6 +36,7 @@ Fact Tables:
 #### Representation Layer (Datamart)
 The Representation Layer is a datamart designed to identify the top-10 most similar source molecules for target molecules. 
 It consists of the following tables:
+![datamart_tables]([assets/datamart_tables_erd.PNG](https://github.com/Natalia-QA1/quantori-final-project/blob/main/assets/datamart_tables_erd.PNG)
 
 Fact Table:
 - dm_top10_fct_molecules_similarities_data_03_06_2024: Stores information about the top 10 similarities for each target molecule.
