@@ -9,7 +9,8 @@ from molecules_similarities_project.config.config import (
     PG_USER,
     PG_PASSWORD,
     PG_DATABASE,
-    PG_HOST
+    PG_HOST,
+    PG_PORT
 )
 from requests import RequestException
 from requests.exceptions import (
@@ -20,7 +21,10 @@ from requests.exceptions import (
 from sqlalchemy import create_engine
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import sessionmaker
-
+from aws_postgres_connector_module import PostgresConnector
+logging.basicConfig(
+    level=logging.INFO
+)
 
 class PostgresSourceTableLoaderBaseException(
     Exception
@@ -44,6 +48,11 @@ class PostgresSourceTableLoaderUnexpectedResponseStructureException(
     PostgresSourceTableLoaderBaseException
 ):
     pass
+
+
+class PostgresSourceTableLoaderGeneralException(
+    PostgresSourceTableLoaderBaseException
+):
 
 
 class PostgresSourceTableLoader:
@@ -75,14 +84,23 @@ class PostgresSourceTableLoader:
         self.api_key = api_key
 
     def check_total_rows_amount(self):
+        """
+        The method fetches dataset rows amount from api to generate batches in
+        multiprocessing.
+        :return: rows count
+        """
 
         try:
-            response = requests.get(self.base_url)
-            response.raise_for_status()  # Will raise an HTTPError for bad responses
+            response = requests.get(
+                self.base_url
+            )
+            response.raise_for_status()
             data = response.json()
             if "page_meta" in data and "total_count" in data["page_meta"]:
                 total_rows_count = data["page_meta"]["total_count"]
-                logging.info(f"Total row count for {self.base_url} is {total_rows_count}.")
+                logging.info(
+                    f"Total row count for {self.base_url} is {total_rows_count}."
+                )
                 return total_rows_count
             else:
                 raise PostgresSourceTableLoaderUnexpectedResponseStructureException(
@@ -94,16 +112,23 @@ class PostgresSourceTableLoader:
                 f"Network error occurred: {conn_err}."
             )
 
-    def fetch_data(
-            self,
-            start,
-            end,
-            batch_size=5000,
-            retries=5,
-            delay=2,
-            result=None
-    ):
-
+    def fetch_data( self,start,end,batch_size=5000,retries=5, delay=2,result=None):
+        """
+        The method data from an external API in batches.
+        It employs a retry mechanism to handle transient errors and ensures that
+        data fetching can continue even if some requests fail.
+        :param start: The starting offset for fetching data.
+        :param end: The ending offset for fetching data.
+        :param batch_size: The number of records to fetch in each batch.
+               Default is 5000.
+        :param retries: The number of retry attempts in case of a request failure.
+               Default is 5.
+        :param delay: The delay between retry attempts, in seconds.
+               Default is 2 seconds.
+        :param result:
+        :return: A list to store the fetched data.
+               Default is None.
+        """
         if result is None:
             result = []
 
@@ -125,9 +150,15 @@ class PostgresSourceTableLoader:
                     self.api_key,
                     []
                 )
+
+                logging.debug(
+                    f"Fetched data (sample): {data[:2]}"
+                )
+
                 if not data:
                     return result
                 result.extend(data)
+
                 if len(result) >= end - start:
                     return result[:end - start]
                 time.sleep(random.uniform(
@@ -142,8 +173,11 @@ class PostgresSourceTableLoader:
                     delay,
                     result
                 )
+
             except RequestException as conn_e:
-                print(f"Error fetching data: {conn_e}")
+                logging.error(
+                    f"Error fetching data: {conn_e}"
+                )
                 time.sleep(delay * (2 ** attempt))
             return result[:end - start]
         else:
@@ -152,7 +186,17 @@ class PostgresSourceTableLoader:
             )
 
     def process_mol_batch(self, molecules, keys):
-
+        """
+        Tmethod processes a batch of molecular data by extracting specified
+        keys and returning the data in a structured format suitable for
+        further database insertion.
+        :param molecules: A list of molecular data, where each molecule is
+               represented as a dictionary.
+        :param keys: A list of keys to extract from each molecule's data.
+               Keys can be specified as strings for direct extraction or
+               as tuples for nested extraction.
+        :return:
+        """
         def extract_nested(data, key_path):
             keys = key_path.split(".")
             current_data = data
@@ -190,130 +234,141 @@ class PostgresSourceTableLoader:
         return df
 
     def ensure_column_order_and_types(self, df):
+        """
+        The method ensures that a given DataFrame (df)
+        adheres to a specified column order and data types
+        as defined in self.table_columns.
+        :param df: The Pandas DataFrame to be processed,
+               containing columns that need to be ordered and
+               typed according to self.table_columns.
+        :return: A modified DataFrame.
+        """
         for col, dtype in self.table_columns.items():
             if col not in df.columns:
                 df[col] = None
             if dtype == "str":
                 df[col] = df[col].astype("object")
-        df = df[self.table_columns.keys()]
+        df = df[
+            self.table_columns.keys()
+        ]
         return df
 
-    def insert_data(self, df):
-        engine = create_engine(
-            f"postgresql://{PG_USER}:{PG_PASSWORD}@{PG_HOST}/{PG_DATABASE}"
-        )
-        Session = sessionmaker(bind=engine)
-        session = Session()
+# TODO: create a separate class for this type of common func ?
+    def convert_bool_to_numeric(self, df):
+        """
+        The method converts boolean columns in a given Pandas DataFrame
+        to numeric (float) values.
+        :param df: The Pandas DataFrame containing boolean columns to be
+               converted to numeric values.
+        :return: A modified DataFrame.
+        """
+        bool_columns = [
+            col for col, dtype in self.table_columns.items() if dtype == "bool"
+        ]
+        for col in bool_columns:
+            df[col] = df[col].astype(float)
 
-        try:
-
-            data = df.to_dict(orient="records")
-
-            session.bulk_insert_mappings(self.base_class, data)
-            session.commit()
-
-            logging.info(
-                f"Data is loaded into DB. Number of inserted rows: {len(df)}"
-            )
-        except IntegrityError as e:
-            session.rollback()
-
-            # Identify and remove duplicates
-            existing_chembl_ids = session.query(self.base_class.chembl_id).all()
-            existing_chembl_ids_set = set([row[0] for row in existing_chembl_ids])
-            filtered_data = [
-                record for record in data if record["chembl_id"] not in existing_chembl_ids_set
-            ]
-
-            if filtered_data:
-                try:
-                    session.bulk_insert_mappings(
-                        self.base_class,
-                        filtered_data
-                    )
-                    session.commit()
-                    print(
-                        f"Data is loaded into DB after removing duplicates. \
-                        Number of inserted rows: {len(filtered_data)}"
-                    )
-                except IntegrityError as e:
-                    session.rollback()
-                    print(f"IntegrityError occurred during reinsert: {e}")
-
-            else:
-                print("No data to insert after removing duplicates.")
-        except Exception as e:
-            session.rollback()
-            print(f"Error inserting data: {e}")
-        finally:
-            session.close()
+        return df
 
     def fetch_and_insert(self, start, end):
+        """
+        The method retrieves data from an external source in batches,
+        processes it, and inserts it into a PostgreSQL database.
+        :param start: The starting index of the data retrieval process.
+        :param end: The ending index (exclusive) of the data retrieval process.
+        :return:
+        """
         logging.info(
             f"Process starting for range {start} to {end}"
         )
-        engine = create_engine(
-            f"postgresql://{PG_USER}:{PG_PASSWORD}@{PG_HOST}/{PG_DATABASE}"
-        )
-        Session = sessionmaker(bind=engine)
-        session = Session()
 
         try:
             for offset in range(start, end, self.batch_size):
                 logging.info(
-                    f"Fetching data from offset {offset} to {min(offset + self.batch_size, end)}"
+                    f"Fetching data from offset {offset} to "
+                    f"{min(offset + self.batch_size, end)}"
                 )
+
                 data = self.fetch_data(
                     offset,
                     min(offset + self.batch_size, end),
                     self.batch_size
                 )
+
                 if not data:
                     logging.warning(
-                        f"No data fetched for offset {offset} to {min(offset + self.batch_size, end)}"
+                        f"No data fetched for offset {offset} to"
+                        f"{min(offset + self.batch_size, end)}"
                     )
                     continue
+
                 all_mol_param = [molecule for molecule in data]
-                mols_df = self.process_mol_batch(all_mol_param, self.keys_to_extract)
+
+                mols_df = self.process_mol_batch(
+                    all_mol_param,
+                    self.keys_to_extract
+                )
+
+                mols_df_check_col = self.ensure_column_order_and_types(
+                    mols_df
+                )
+                mols_df = self.convert_bool_to_numeric(
+                    mols_df_check_col
+                )
                 mols_df.rename(
-                    columns={"molecule_chembl_id": "chembl_id"},
+                    columns={
+                        "molecule_chembl_id": "chembl_id"
+                    },
                     inplace=True
                 )
+                filtered_df = mols_df[mols_df["chembl_id"].notna()]
 
-                # Ensure columns are ordered and typed correctly
-                mols_df = self.ensure_column_order_and_types(mols_df)
-
-                # Convert DataFrame to list of dictionaries
-                data_to_insert = mols_df.to_dict(orient="records")
-
-                # Perform bulk insert
-                session.bulk_insert_mappings(self.base_class, data_to_insert)
-                session.commit()
-
-                logging.info(
-                    f"Inserted {len(data_to_insert)} rows into DB. \
-                    Total rows: {offset + len(data_to_insert)}"
+                pg_connector = PostgresConnector(
+                    PG_DATABASE,
+                    PG_HOST,
+                    PG_USER,
+                    PG_PASSWORD,
+                    PG_PORT
                 )
 
-        except Exception as e:
-            print(f"Error inserting data: {e}")
-            session.rollback()
-        finally:
-            session.close()
+                pg_connector.connect_for_bulk_load(
+                    filtered_df,
+                    self.base_class,
+                    self.table
+                )
+
+                logging.info(
+                    f"Inserted {len(filtered_df)} rows into DB."
+                    f"Total rows: {offset + len(filtered_df)}"
+                )
+        except (TypeError, ValueError) as e:
+            raise PostgresSourceTableLoaderGeneralException(
+                f"Error during processing occurred: {e}"
+            )
 
         logging.info(
             f"Process finished for range {start} to {end}"
         )
 
     def parallel_fetch_and_insert(self):
+        """
+        The method facilitates concurrent data retrieval and insertion
+        into a PostgreSQL database by spawning multiple processes, each
+        handling a subset of the data.
+        """
         processes = []
         rows_per_process = self.total_rows // self.processes_num
 
         for i in range(self.processes_num):
             start = i * rows_per_process
             end = start + rows_per_process if i != self.processes_num - 1 else self.total_rows
-            p = Process(target=self.fetch_and_insert,
-                        args=(start, end))
+            p = Process(
+                target=self.fetch_and_insert,
+                args=(
+                    start,
+                    end
+                )
+            )
             processes.append(p)
             p.start()
 
