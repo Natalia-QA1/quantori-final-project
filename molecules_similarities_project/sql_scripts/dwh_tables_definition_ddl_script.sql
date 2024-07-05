@@ -4,14 +4,8 @@ CREATE TABLE IF NOT EXISTS nananeva.st_fct_source_molecules_morgan_fingerprints 
     morgan_fingerprint BYTEA NOT NULL
 );
 
-CREATE TABLE IF NOT EXISTS nananeva.st_fct_target_molecues_data_03_06_2024_similarities (
-    target_chembl_id VARCHAR(20) NOT NULL,
-    source_chembl_id VARCHAR(20) NOT NULL,
-    similarity_score NUMERIC NOT NULL
-);
 
 -- STORAGE LAYER DIMENSION TABLES
-
 CREATE TABLE IF NOT EXISTS nananeva.st_dim_chembl_id_lookup (
     chembl_id VARCHAR(20) NOT NULL UNIQUE,
     entity_type VARCHAR(50),
@@ -87,8 +81,7 @@ CREATE TABLE IF NOT EXISTS nananeva.st_dim_compound_structures_1 (
 );
 
 -- DATA MART TABLES
-
-CREATE TABLE IF NOT EXISTS nananeva.dm_top10_dim_molecules_data_03_06_2024 (
+CREATE TABLE IF NOT EXISTS nananeva.dm_top10_dim_molecules (
     chembl_id VARCHAR(20) NOT NULL,
     molecule_type TEXT,
     mw_freebase NUMERIC,
@@ -101,7 +94,7 @@ CREATE TABLE IF NOT EXISTS nananeva.dm_top10_dim_molecules_data_03_06_2024 (
     heavy_atoms NUMERIC
 );
 
-CREATE TABLE IF NOT EXISTS nananeva.dm_top10_fct_molecules_similarities_data_03_06_2024 (
+CREATE TABLE IF NOT EXISTS nananeva.dm_top10_fct_molecules_similarities (
     target_molecule_reference VARCHAR(20) NOT NULL,
     source_molecule_reference VARCHAR(20) NOT NULL,
     tanimoto_similarity_score NUMERIC,
