@@ -28,23 +28,20 @@ Dimension Tables:
 - st_dim_compound_properties
 - st_dim_compound_structures
 
-Fact Tables:
+Fact Table:
 - st_fct_source_molecules_morgan_fingerprints: Stores computed Morgan fingerprints for each molecule. This table can be extended to include other computations in the future.
-- st_fct_target_molecules_data_03_06_2024_similarities: Stores computed similarity scores for target molecules compared to all other source molecules.
+######* Firstly, I planned to create a fact table with similarities in DWH (st_fct_target_molecules_similarities: Stores computed similarity scores for target molecules compared to all other source molecules), but the I decided to delete it since we will store all similarities in parquet in s3 which is more efficient strategy because we have a huge amount of data.
+It can be the case, for example, if we want our end users who work with data to have direct fast access to data (instead connecting to s3 and retrieve data). But also here we have to take into consideration available resources (available storage, cost computations, etc).
+
 
 
 #### Representation Layer (Datamart)
 The Representation Layer is a datamart designed to identify the top-10 most similar source molecules for target molecules. 
 It consists of the following tables:
-![datamart_tables](https://github.com/Natalia-QA1/quantori-final-project/blob/main/assets/datamart_tables_erd.PNG)
-
 Fact Table:
-- dm_top10_fct_molecules_similarities_data_03_06_2024: Stores information about the top 10 similarities for each target molecule.
-
+- dm_top10_fct_molecules_similarities: Stores information about the top 10 similarities for each target molecule.
 Dimension Table:
-- dm_top10_dim_molecules_data_03_06_2024: Stores descriptive information only about molecules included in the datamart (both target and source molecules).
-
-This structured approach ensures that the DWH effectively supports the goal of finding the most similar molecules, while maintaining efficient storage and cost management.
+- dm_top10_dim_molecules: Stores descriptive information only about molecules included in the datamart (both target and source molecules).
 
 
 
