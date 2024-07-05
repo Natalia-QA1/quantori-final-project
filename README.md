@@ -53,22 +53,24 @@ Steps:
    In the folder "molecules_similarities_project/scripts/run_scripts" run   !   script.
    This will fetch data from ChemBL web service and load them into dimension tables on the storage layer: 
    "st_dim_chembl_id_lookup", "st_dim_molecule_dictionary", "st_dim_compound_properties", "st_dim_compound_structures".
-4. Source molecules fingerprints computations pipeline
+3. Source molecules fingerprints computations pipeline
    In the folder "molecules_similarities_project/scripts/run_scripts" run "fingerprints_computation_pipeline_run_script.py"    
    script.
    This will fetch "chembl_id, canonical_smiles" of all source molecules from DWH "st_dim_compound_structures" table, then 
    calculate fingerprints for each molecule, load this data into "st_fct_source_molecules_morgan_fingerprints" on the 
    storage layer, save data into several parquet files and put them into s3 bucket.
-6. Target molecules similarities computations pipeline
+4. Target molecules similarities computations pipeline
    In the folder "molecules_similarities_project/scripts/run_scripts" run   !   script.
    This will compute Tanimoto similarity scores for each target molecule from scv files in s3 bucket with all source molecules     from ChemBL database.
    For each target molecule the full similarity score table will be saved into a parquet file and upload to S3 bucket.
    The whole (with similarity scores for all target molecules) will be loaded into 
    "st_fct_target_molecules_data_03_06_2024_similarities" table on the storage layer.
-8. DM tables data loading pipeline
-   In the folder "molecules_similarities_project/sql_scripts" in the "dwh_datamart_tables_data_load_pipepline_script.sql" script trigger "nananeva.insert_data_dm_top10_pipeline_main()".
-   This will insert data into DM tables after all storage layer tables are populated.
-9. Create DM views
+5. DM tables data loading pipeline
+   - In the folder "molecules_similarities_project/scripts/run_scripts" run   !   script. It will load data computes after fetching and processing parquet files 
+     stored in s3 into fact table "dm_top10_fct_molecules_similarities"
+   - In the folder "molecules_similarities_project/sql_scripts" in the "dwh_datamart_tables_data_load_pipepline_script.sql" script trigger 
+     "insert_data_dm_top10_fct()" procedure. This will select chembl molecules ids from the fact table and insert descriptive data only for presented molecules.
+6. Create DM views
    In the folder "molecules_similarities_project/sql_scripts" run "dwh_datamart_views_script.sql" script.
 
    
