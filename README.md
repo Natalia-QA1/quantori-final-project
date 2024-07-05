@@ -29,7 +29,8 @@ Dimension Tables:
 
 Fact Table:
 - st_fct_source_molecules_morgan_fingerprints: Stores computed Morgan fingerprints for each molecule. This table can be extended to include other computations in the future.
-######* Firstly, I planned to create a fact table with similarities in DWH (st_fct_target_molecules_similarities: Stores computed similarity scores for target molecules compared to all other source molecules), but the I decided to delete it since we will store all similarities in parquet in s3 which is more efficient strategy because we have a huge amount of data.
+  
+###### Firstly, I planned to create a fact table with similarities in DWH (st_fct_target_molecules_similarities: Stores computed similarity scores for target molecules compared to all other source molecules), but the I decided to delete it since we will store all similarities in parquet in s3 which is more efficient strategy because we have a huge amount of data.
 It can be the case, for example, if we want our end users who work with data to have direct fast access to data (instead connecting to s3 and retrieve data). But also here we have to take into consideration available resources (available storage, cost computations, etc).
 
 
