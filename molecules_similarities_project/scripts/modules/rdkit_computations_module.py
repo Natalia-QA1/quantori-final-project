@@ -28,7 +28,8 @@ class MorganFingerprintGenerator:
     def __init__(self):
         pass
 
-    def compute_fingerprint(self, smiles, radius=2, nbits=2048):
+    @staticmethod
+    def compute_fingerprint(smiles, radius=2, nbits=2048):
         """
         Computes the Morgan fingerprint for a given SMILES string.
 
@@ -54,15 +55,16 @@ class MorganFingerprintGenerator:
                     f"Invalid SMILES string: {smiles}"
                 )
                 return None
+
         except (ValueError, RuntimeError) as rdkit_error:
             raise RdkitComputationsComputationException(
-                f"RDKit error computing fingerprint for SMILES \
-                '{smiles}': {str(rdkit_error)}"
+                f"RDKit error computing fingerprint for SMILES"
+                f"{smiles}': {str(rdkit_error)}"
             )
         except (AttributeError, TypeError) as g_error:
             raise RdkitComputationsCommonException(
-                f"Generic error computing fingerprint for SMILES \
-                '{smiles}': {str(g_error)}"
+                f"Generic error computing fingerprint for SMILES"
+                f"{smiles}: {str(g_error)}"
             )
 
 
@@ -100,29 +102,32 @@ class TanimotoSimilarityForMoleculesFromAWS(
 ):
     def compute_similarity_scores(self, df_1, df_2):
         similarity_scores = []
+
         for _, target_row in df_1.iterrows():
             target_fp = DataStructs.CreateFromBitString(
-                target_row['fingerprint']
+                target_row["fingerprint"]
             )
             chembl_ids = []
             similarities = []
+
             for _, chembl_row in df_2.iterrows():
                 chembl_fp = DataStructs.CreateFromBitString(
-                    chembl_row['morgan_fingerprint']
+                    chembl_row["fingerprint"]
                 )
                 similarity = self.compute_tanimoto(
                     target_fp,
                     chembl_fp
                 )
                 chembl_ids.append(
-                    chembl_row['chembl_id']
+                    chembl_row["chembl_id"]
                 )
                 similarities.append(
                     similarity
                 )
             similarity_scores.append({
-                'target_chembl_id': target_row['molecule_name'],
-                'source_chembl_id': chembl_ids,
-                'similarity_score': similarities
+                "target_chembl_id": target_row["molecule_name"],
+                "source_chembl_id": chembl_ids,
+                "similarity_score": similarities
             })
+
         return similarity_scores
