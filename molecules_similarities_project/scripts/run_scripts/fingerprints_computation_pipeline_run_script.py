@@ -2,7 +2,7 @@ import logging
 import multiprocessing as mp
 
 import numpy as np
-from molecules_similarities_project.scripts.modules.fingerprints_computation_pipeline_main_module import \
+from modules.fingerprints_computation_pipeline_main_module import \
     ChemblMoleculesFingerprintGenerator
 
 
