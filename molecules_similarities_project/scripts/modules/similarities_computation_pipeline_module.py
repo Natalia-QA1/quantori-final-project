@@ -57,6 +57,10 @@ class TargetMoleculesSimilarityGenerator:
             )
 
     def download_csv_with_target_mols_to_df(self) -> pd.DataFrame:
+        """
+        The method download csv format files from Amazon s3 bucket
+        :return: A DataFrame with target molecules.
+        """
         target_mols_dfs = self.get_data.download_csv_data(
             "utf-8"
         )
@@ -90,6 +94,16 @@ class TargetMoleculesSimilarityGenerator:
 
     def compute_fingerprints_for_chembl_mols(self, chembl_mols, chunk_size=100000):
 
+        """
+        The method computes molecular fingerprints for a dataset of chembl (source)
+         molecules. It uses a specified chunk size to process the data efficiently.
+        :param chembl_mols: DataFrame containing chemical molecules with a column
+               "canonical_smiles" representing their canonical SMILES string.
+        :param chunk_size: Integer indicating the maximum size of each chunk.
+               Defaults to 100000.
+        :return: An array of chunks of a split DataFrame.
+        """
+
         chembl_mols["fingerprint"] = chembl_mols["canonical_smiles"].apply(
             lambda x: MorganFingerprintGenerator.compute_fingerprint(x) if x else None
         )
@@ -106,7 +120,18 @@ class TargetMoleculesSimilarityGenerator:
 
         return chembl_chunks
 
-    def compute_similarities(self, target_mols, chembl_chunks):
+    def compute_similarities(self, target_mols, chembl_chunks) -> pd.DataFrame:
+        """
+        The method computes similarity scores between a set of target
+        molecules and a collection of molecules split into chunks
+        (chembl_chunks). It uses molecular fingerprints to measure
+        similarity and aggregates the results into a DataFrame.
+        :param target_mols: DataFrame containing target molecules with
+               a column "smiles" representing their SMILES string.
+        :param chembl_chunks: List of DataFrames, each representing a
+               chunk of molecules from a larger dataset.
+        :return: A DataFrame with computed similarities.
+        """
 
         target_mols["fingerprint"] = target_mols["smiles"].apply(
             lambda x: MorganFingerprintGenerator.compute_fingerprint(x) if x else None
@@ -153,7 +178,16 @@ class TargetMoleculesSimilarityGenerator:
 
         return df_similarity_scores
 
-    def save_similarity_scores_to_s3_postgres(self, df, bucket_name, folder_name):
+    def save_similarity_scores_to_s3(self, df, bucket_name, folder_name):
+        """
+        The method save DataFrame in parquet file and upload to Amazon s3 bucket.
+        :param df: DataFrame containing similarity scores with columns
+               "target_chembl_id", "source_chembl_id", and "similarity_score".
+        :param bucket_name: Name of the Amazon S3 bucket to upload the Parquet
+               files.
+        :param folder_name: Folder within the S3 bucket where the files should
+               be stored.
+        """
 
         if df.empty:
             logging.warning(
