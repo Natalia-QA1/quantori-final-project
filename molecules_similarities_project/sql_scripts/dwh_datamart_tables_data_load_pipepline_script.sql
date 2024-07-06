@@ -1,5 +1,5 @@
 
-create or replace procedure nananeva.insert_data_dm_top10_dim()
+create or replace procedure nananeva.insert_data_dm_top10_dim_molecules()
 language plpgsql
 as $$
 begin
@@ -10,7 +10,7 @@ begin
 	select distinct(source_molecule_reference) as chembl_id
 	from nananeva.dm_top10_fct_molecules_similarities
 	)
-	insert into nananeva.dm_top10_dim_molecules (
+	insert into nananeva.dm_top10_dim_molecules(
 		chembl_id ,
 	    molecule_type ,
 	    mw_freebase ,
@@ -36,9 +36,9 @@ begin
 	join nananeva.st_dim_compound_properties mp
 	on md.chembl_id = mp.chembl_id
 	where md.chembl_id in (select chembl_id from data_mart_chembl_ids)
-	      and not exists(select 1 from nananeva.dm_top10_dim_molecules;
+		  and not exists(select 1 from nananeva.dm_top10_dim_molecules);
 
 end
 $$
 
-call nananeva.insert_data_dm_top10_dim();
+call nananeva.insert_data_dm_top10_dim_molecules();
