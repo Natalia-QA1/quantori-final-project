@@ -1,9 +1,8 @@
 -- 1
 create or replace view nananeva.avg_similarity_score_per_source_molecule as
 select source_molecule_reference ,
-	   avg(tanimoto_similarity_score) as avg_similarity_score_per_source_molecule
-from nananeva.dm_top10_fct_molecules_similarities_data_03_06_2024_test
-where has_duplicates_of_last_largest_score is false  --only top-10
+	   avg(tanimoto_similarity_score) as avg_similarity_score
+from nananeva.dm_top10_fct_molecules_similarities
 group by source_molecule_reference ;
 
 
@@ -13,8 +12,8 @@ with source_alogp as (
     select
         f.source_molecule_reference as source_mol,
         d.alogp as source_alogp
-    from nananeva.dm_top10_fct_molecules_similarities_data_03_06_2024 f
-    join nananeva.dm_top10_dim_molecules_data_03_06_2024 d
+    from nananeva.dm_top10_fct_molecules_similarities f
+    join nananeva.dm_top10_dim_molecules d
     on f.source_molecule_reference = d.chembl_id
     group by
         f.source_molecule_reference,
@@ -24,8 +23,8 @@ target_alogp as (
     select
         f.target_molecule_reference as target_mol,
         d.alogp as target_alogp
-    from nananeva.dm_top10_fct_molecules_similarities_data_03_06_2024 f
-    join nananeva.dm_top10_dim_molecules_data_03_06_2024 d
+    from nananeva.dm_top10_fct_molecules_similarities f
+    join nananeva.dm_top10_dim_molecules d
     on f.target_molecule_reference = d.chembl_id
     group by
         f.target_molecule_reference,
@@ -34,12 +33,11 @@ target_alogp as (
 select
     fct.source_molecule_reference,
     avg(abs(tgt.target_alogp - src.source_alogp)) as avg_alogp_deviation
-from nananeva.dm_top10_fct_molecules_similarities_data_03_06_2024 fct
+from nananeva.dm_top10_fct_molecules_similarities fct
 join target_alogp tgt
 on  fct.target_molecule_reference = tgt.target_mol
 join source_alogp src
 on  fct.source_molecule_reference = src.source_mol
-where  fct.has_duplicates_of_last_largest_score is false --only top-10
 group by  fct.source_molecule_reference;
 
 
@@ -47,29 +45,29 @@ group by  fct.source_molecule_reference;
 create or replace view nananeva.pivot_10_random_source_molecules as
  select
     target_molecule_reference,
-    max(case when source_molecule_reference = 'CHEMBL1521628' then tanimoto_similarity_score end) as 'CHEMBL1521628',
-    max(case when source_molecule_reference = 'CHEMBL1521632' then tanimoto_similarity_score end) as 'CHEMBL1521632',
-    max(case when source_molecule_reference = 'CHEMBL1521690' then tanimoto_similarity_score end) as 'CHEMBL1521690',
-    max(case when source_molecule_reference = 'CHEMBL1521773' then tanimoto_similarity_score end) as 'CHEMBL1521773',
-    max(case when source_molecule_reference = 'CHEMBL1521808' then tanimoto_similarity_score end) as 'CHEMBL1521808',
-    max(case when source_molecule_reference = 'CHEMBL1521873' then tanimoto_similarity_score end) as 'CHEMBL1521873',
-    max(case when source_molecule_reference = 'CHEMBL4462956' then tanimoto_similarity_score end) as 'CHEMBL4462956',
-    max(case when source_molecule_reference = 'CHEMBL4463317' then tanimoto_similarity_score end) as 'CHEMBL4463317',
-    max(case when source_molecule_reference = 'CHEMBL4463346' then tanimoto_similarity_score end) as 'CHEMBL4463346',
-    max(case when source_molecule_reference = 'CHEMBL4472235' then tanimoto_similarity_score end) as 'CHEMBL4472235'
+    max(case when source_molecule_reference = 'CHEMBL140380' then tanimoto_similarity_score end) as "CHEMBL140380",
+    max(case when source_molecule_reference = 'CHEMBL269729' then tanimoto_similarity_score end) as "CHEMBL269729",
+    max(case when source_molecule_reference = 'CHEMBL269758' then tanimoto_similarity_score end) as "CHEMBL269758",
+    max(case when source_molecule_reference = 'CHEMBL27121' then tanimoto_similarity_score end) as "CHEMBL27121",
+    max(case when source_molecule_reference = 'CHEMBL414181' then tanimoto_similarity_score end) as "CHEMBL414181",
+    max(case when source_molecule_reference = 'CHEMBL429017' then tanimoto_similarity_score end) as "CHEMBL429017",
+    max(case when source_molecule_reference = 'CHEMBL586106' then tanimoto_similarity_score end) as "CHEMBL586106",
+    max(case when source_molecule_reference = 'CHEMBL6222' then tanimoto_similarity_score end) as "CHEMBL6222",
+    max(case when source_molecule_reference = 'CHEMBL6240' then tanimoto_similarity_score end) as "CHEMBL6240",
+    max(case when source_molecule_reference = 'CHEMBL6334' then tanimoto_similarity_score end) as "CHEMBL6334"
 from
-    nananeva.dm_top10_fct_molecules_similarities_data_03_06_2024_test
+    nananeva.dm_top10_fct_molecules_similarities
 where  source_molecule_reference in
-    ('CHEMBL1521628',
-    'CHEMBL1521632',
-    'CHEMBL1521690',
-    'CHEMBL1521773',
-    'CHEMBL1521808',
-    'CHEMBL1521873',
-    'CHEMBL4462956',
-    'CHEMBL4463317',
-    'CHEMBL4463346',
-    'CHEMBL4472235')
+    ('CHEMBL140380',
+    'CHEMBL269729',
+    'CHEMBL269758',
+    'CHEMBL27121',
+    'CHEMBL414181',
+    'CHEMBL429017',
+    'CHEMBL586106',
+    'CHEMBL6222',
+    'CHEMBL6240',
+    'CHEMBL6334')
 group by  target_molecule_reference
 order by  target_molecule_reference;
 
@@ -121,8 +119,7 @@ select
     nth_value(target_molecule_reference, 2)
     	over (partition by source_molecule_reference order by tanimoto_similarity_score desc rows between unbounded preceding and current row)
     	as second_most_similar_target
-from
-    nananeva.dm_top10_fct_molecules_similarities_data_03_06_2024_test
+from nananeva.dm_top10_fct_molecules_similarities
 where source_molecule_reference != target_molecule_reference;
 
 
@@ -151,8 +148,8 @@ select
         else cast(dim.heavy_atoms as varchar)
     end as source_molecule_heavy_atoms,
     avg(fct.tanimoto_similarity_score) as avg_tanimoto_similarity_score
-from nananeva.dm_top10_fct_molecules_similarities_data_03_06_2024 fct
-join nananeva.dm_top10_dim_molecules_data_03_06_2024 dim
+from nananeva.dm_top10_fct_molecules_similarities fct
+join nananeva.dm_top10_dim_molecules dim
 on fct.source_molecule_reference = dim.chembl_id
 group by
     grouping sets(
