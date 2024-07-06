@@ -72,7 +72,7 @@ CREATE TABLE IF NOT EXISTS nananeva.st_dim_compound_properties (
     np_likeness_score NUMERIC
 );
 
-CREATE TABLE IF NOT EXISTS nananeva.st_dim_compound_structures_1 (
+CREATE TABLE IF NOT EXISTS nananeva.st_dim_compound_structures (
     chembl_id VARCHAR(30) NOT NULL UNIQUE,
     molfile TEXT,
     standard_inchi TEXT,
