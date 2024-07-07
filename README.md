@@ -19,7 +19,7 @@ The Data Warehouse (DWH) for this project follows a two-layer architecture, comp
 The decision to omit a staging layer is based on the direct access to the ChEMBL database via API or a new client, aiming to save space and reduce potential costs.
 
 #### Storage Layer
-The Storage Layer is designed with a complex star schema, featuring several fact tables and dimension tables. 
+The Storage Layer is designed as a star schema, featuring fact table and dimension tables. 
 It consists of the following tables:
 Dimension Tables:
 - st_dim_chembl_id_lookup
@@ -50,27 +50,29 @@ Steps:
    In the folder "molecules_similarities_project/sql_scripts" run "dwh_tables_definition_ddl_script.sql" script.
    This will create tables for both layers: storage and datamart.
 2. ChemBL tables data loading pipeline
-   In the folder "molecules_similarities_project/scripts/run_scripts" run   !   script.
+   In the folder "molecules_similarities_project/scripts/run_scripts" run the following scripts:
+   - chembl_tables_pipeline_run_compound_properties_table.py
+   - chembl_tables_pipeline_run_compound_structures_table.py
+   - chembl_tables_pipeline_run_script_lookup_table.py
+   - chembl_tables_pipeline_run_script_molecule_dictionary_table.py
    This will fetch data from ChemBL web service and load them into dimension tables on the storage layer: 
    "st_dim_chembl_id_lookup", "st_dim_molecule_dictionary", "st_dim_compound_properties", "st_dim_compound_structures".
-3. Source molecules fingerprints computations pipeline
+4. Source molecules fingerprints computations pipeline
    In the folder "molecules_similarities_project/scripts/run_scripts" run "fingerprints_computation_pipeline_run_script.py"    
    script.
    This will fetch "chembl_id, canonical_smiles" of all source molecules from DWH "st_dim_compound_structures" table, then 
    calculate fingerprints for each molecule, load this data into "st_fct_source_molecules_morgan_fingerprints" on the 
    storage layer, save data into several parquet files and put them into s3 bucket.
-4. Target molecules similarities computations pipeline
-   In the folder "molecules_similarities_project/scripts/run_scripts" run   !   script.
-   This will compute Tanimoto similarity scores for each target molecule from scv files in s3 bucket with all source molecules     from ChemBL database.
-   For each target molecule the full similarity score table will be saved into a parquet file and upload to S3 bucket.
-   The whole (with similarity scores for all target molecules) will be loaded into 
-   "st_fct_target_molecules_data_03_06_2024_similarities" table on the storage layer.
-5. DM tables data loading pipeline
-   - In the folder "molecules_similarities_project/scripts/run_scripts" run   !   script. It will load data computes after fetching and processing parquet files 
-     stored in s3 into fact table "dm_top10_fct_molecules_similarities"
+5. Target molecules similarities computations pipeline
+   In the folder "molecules_similarities_project/scripts/run_scripts" run "similarities_computation_run_script.py" script.
+   This will compute Tanimoto similarity scores for each target molecule from scv files in s3 bucket with all source molecules from ChemBL database.
+   For each target molecule the full similarity score table will be saved into a separate parquet file and upload to S3 bucket.
+6. Top-10 molecules similarities computation pipeline
+   - In the folder "molecules_similarities_project/scripts/run_scripts" run "top_10_similarities_computation_run_script.py" script.
+     It will load data computes after fetching and processing parquet files stored in s3 into fact table "dm_top10_fct_molecules_similarities"
    - In the folder "molecules_similarities_project/sql_scripts" in the "dwh_datamart_tables_data_load_pipepline_script.sql" script trigger 
      "insert_data_dm_top10_fct()" procedure. This will select chembl molecules ids from the fact table and insert descriptive data only for presented molecules.
-6. Create DM views
+7. Create DM views
    In the folder "molecules_similarities_project/sql_scripts" run "dwh_datamart_views_script.sql" script.
 
    
