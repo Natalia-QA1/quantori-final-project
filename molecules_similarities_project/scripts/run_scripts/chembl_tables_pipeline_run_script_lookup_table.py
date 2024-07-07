@@ -10,7 +10,7 @@ def main():
     loader = PostgresSourceTableLoader(
         url="https://www.ebi.ac.uk/chembl/api/data/chembl_id_lookup.json",
         table_col=lookup_ids_table_columns,
-        table="st_dim_chembl_id_lookup_",
+        table="st_dim_chembl_id_lookup",
         base_class=ChemblLookupIds,
         col_keys=lookup_ids_keys_to_extract,
         processes_num=5,
