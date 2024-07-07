@@ -28,12 +28,6 @@ class Top10SimilaritiesGenerator:
 
         target_mols_dfs = self.get_data.download_parquet_data()
 
-        column_patterns_mols_df = {
-            "target_chembl_id ": [r'target_chembl_id'],
-            "source_chembl_id  ": [r'source_chembl_id  '],
-            "similarity_score  ": [r'similarity_score  ']
-        }
-
         return target_mols_dfs
 
     @staticmethod
