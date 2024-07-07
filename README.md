@@ -139,10 +139,8 @@ Some target molecules for which there are more source molecules with the same hi
 and which are not included into top-10, mark them with a special flag “has_duplicates_of_last_largest_score”.
 ![top_10](https://github.com/Natalia-QA1/quantori-final-project/blob/main/screenshots/top_10_similarities_result.PNG)
 
-
-
-
-
+### Database views
+There were created 5 views.
 
 ### Airflow
 
