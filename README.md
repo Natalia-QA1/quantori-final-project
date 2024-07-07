@@ -77,3 +77,10 @@ Steps:
 
    
 
+
+
+## Project results
+
+### Airflow
+1. Input files Sensor DAG:
+   
