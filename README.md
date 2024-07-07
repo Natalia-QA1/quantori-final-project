@@ -125,6 +125,19 @@ I guess it might be related to some error which occurred:
 TODO: try to handle these errors. Also, I think as an option to load the data from api, analyze and clean them in pandas, only the load to the database. Or create an additional staging layer in the database and the load to storage with some filtering).
 
 
+### Morgan fingerprints computation
+There are 5 parquet files stored in s3 bucket.
+Parquet files are quite efficient to store the data, require less storage memory that reduces expenses.
+
+### Tanimoto similarity scores computation
+After data processing and getting rid of bad data there are 97 target molecules.
+There are 97 parquet files in the s3 bucket with the full similarity score table for each target molecule.
+
+### Top-10 similar source molecules computation
+The result is loaded into the dm_top10_fct_molecules_similaritie and consists of 970 rows (10 top-10 similar molecules).
+Some target molecules for which there are more source molecules with the same high similarity score 
+and which are not included into top-10, mark them with a special flag “has_duplicates_of_last_largest_score”.
+![top_10](https://github.com/Natalia-QA1/quantori-final-project/blob/main/screenshots/top_10_similarities_result.PNG)
 
 
 
