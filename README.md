@@ -78,7 +78,39 @@ Steps:
    
 ## Project orchestration in Airflow
 
+There are the following dags:
+- chembl_tables_pipeline_dag.py
+- fingerprints_computation_pipeline_dag.py
+- input_files_s3_sensor_dag.py
+- similarities_computations_pipelina_dag.py
+- top_10_similarities_pipeline_dag.py
 
+Data flow: 
+                    chembl_tables_pipeline_dag.py
+      (data from the chembl api is loaded into Postgres database)
+on success this DAG will trigger fingerprints_computation_pipeline_dag.py
+                                    ↧
+                  fingerprints_computation_pipeline_dag.py
+(compute fingerprints for all chembl (source) molecule and load them in several 
+                     parquet files into AWS s3 bucket)
+                                    
+                          input_files_s3_sensor_dag.py
+       Monthly scheduled DAG which will check whethernew files has appeared.
+        If so, it will trigger similarities_computations_pipelina_dag.py
+                                    ↧
+                  similarities_computations_pipelina_dag.py
+It reads files from S3 bucket with compound structures for required target molecules 
+and after some transformation which delete bad data computes Tanimoto similarity scores 
+with all source molecules (downloaded from ChemBL database). For each target molecule 
+will be saved the full similarity score table into parquet file and upload to S3 bucket. 
+On success will be triggered top_10_similarities_pipeline_dag.py.
+                                    ↧
+                  top_10_similarities_pipeline_dag.py
+It reads uploaded parquet files with Tanimoto similarity scores, takes top-10 the most similar 
+source molecules and load the result into datamart fact table dm_top10_fct_molecules_similarities.
+After this will be triggered insert_data_dm_top10_fct() procedure that inserts the necessary data
+into dm_top10_dim_molecules table with descriptive information about molecules which are presented 
+in fact table.
 
 ## Project results
 
