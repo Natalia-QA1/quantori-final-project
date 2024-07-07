@@ -87,6 +87,6 @@ Steps:
    ![sensor](https://github.com/Natalia-QA1/quantori-final-project/blob/main/screenshots/Input_files_s3_sensor_dag_1.PNG)
 
 2. Email notifications:
-   ![email_1}(https://github.com/Natalia-QA1/quantori-final-project/blob/main/screenshots/email_notifications_1.PNG)
+   ![email_1](https://github.com/Natalia-QA1/quantori-final-project/blob/main/screenshots/email_notifications_1.PNG)
    ![email_2](https://github.com/Natalia-QA1/quantori-final-project/blob/main/screenshots/email_notifications_2.PNG)
    
