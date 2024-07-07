@@ -76,10 +76,27 @@ Steps:
    In the folder "molecules_similarities_project/sql_scripts" run "dwh_datamart_views_script.sql" script.
 
    
+## Project orchestration in Airflow
 
 
 
 ## Project results
+
+### Chembl tables data ingestion result
+![chembl_tables](https://github.com/Natalia-QA1/quantori-final-project/blob/main/screenshots/Chembl_tables_data_ingestion_result.PNG)
+
+There is some data inconsistency.
+I guess it might be related to some error which occurred:
+![errors](https://github.com/Natalia-QA1/quantori-final-project/blob/main/screenshots/Some_errors_during_chembl_tables_data_ingestion.PNG)
+##### Error inserting data: (psycopg2.errors.NotNullViolation) null value in column "chembl_id" of relation "st_dim_molecule_dictionary_1" violates not-null constraint DETAIL:  Failing row contains (null, null, NaN, 0.0, 0.0, MOL, NaN, Small molecule, NaN, 0.0, 0.0, 0.0, 0.0, 0.0, -1.0, -1.0, -1.0, -1.0, NaN, -1.0, null, null, null, null, null, 0.0, 0.0, -1.0).
+TODO: try to handle these errors. Also, I think as an option to load the data from api, analyze and clean them in pandas, only the load to the database. Or create an additional staging layer in the database and the load to storage with some filtering).
+
+
+
+
+
+
+
 
 ### Airflow
 
