@@ -82,5 +82,7 @@ Steps:
 ## Project results
 
 ### Airflow
+
 1. Input files Sensor DAG:
+   ![sensor](https://github.com/Natalia-QA1/quantori-final-project/blob/main/screenshots/Input_files_s3_sensor_dag_1.PNG)
    
