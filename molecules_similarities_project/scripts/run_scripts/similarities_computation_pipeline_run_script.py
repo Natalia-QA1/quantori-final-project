@@ -40,7 +40,6 @@ def main():
 
     bucket_name = "de-school-2024-aws"
     folder_name = "final_task/ananeva_natalia/similarities"
-    table_to_insert = "st_fct_target_molecules_similarities"
 
     for target_mol in target_mols_chunks:
         similarity_df = generator.compute_similarities(
@@ -48,11 +47,10 @@ def main():
             chembl_chunks=chembl_chunks
         )
 
-        generator.save_similarity_scores_to_s3_postgres(
+        generator.save_similarity_scores_to_s3(
             similarity_df,
             bucket_name,
-            folder_name,
-            table_to_insert
+            folder_name
         )
 
 
