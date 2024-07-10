@@ -142,9 +142,9 @@ and which are not included into top-10, mark them with a special flag “has_dup
 
 ### Database views
 There were created 5 views.
-![view1] (https://github.com/Natalia-QA1/quantori-final-project/blob/main/screenshots/View_1.PNG)
+![view1](https://github.com/Natalia-QA1/quantori-final-project/blob/main/screenshots/View_1.PNG)
 ![view2](https://github.com/Natalia-QA1/quantori-final-project/blob/main/screenshots/View_2.PNG)
-![view3] (https://github.com/Natalia-QA1/quantori-final-project/blob/main/screenshots/View_3.PNG)
+![view3](https://github.com/Natalia-QA1/quantori-final-project/blob/main/screenshots/View_3.PNG)
 ![view4](https://github.com/Natalia-QA1/quantori-final-project/blob/main/screenshots/View_4.PNG)
 ![view5](https://github.com/Natalia-QA1/quantori-final-project/blob/main/screenshots/View_5.PNG)
 
