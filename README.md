@@ -45,6 +45,7 @@ Dimension Table:
 
 
 ## Project launch
+In the folder "config" use "config.py" file to add your credentials.
 Steps:
 1. Create DWH tables in Postgres database:
    In the folder "molecules_similarities_project/sql_scripts" run "dwh_tables_definition_ddl_script.sql" script.
@@ -141,6 +142,12 @@ and which are not included into top-10, mark them with a special flag “has_dup
 
 ### Database views
 There were created 5 views.
+![view1] (https://github.com/Natalia-QA1/quantori-final-project/blob/main/screenshots/View_1.PNG)
+![view2](https://github.com/Natalia-QA1/quantori-final-project/blob/main/screenshots/View_2.PNG)
+![view3] (https://github.com/Natalia-QA1/quantori-final-project/blob/main/screenshots/View_3.PNG)
+![view4](https://github.com/Natalia-QA1/quantori-final-project/blob/main/screenshots/View_4.PNG)
+![view5](https://github.com/Natalia-QA1/quantori-final-project/blob/main/screenshots/View_5.PNG)
+
 
 ### Airflow
 
